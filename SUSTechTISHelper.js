@@ -16,7 +16,7 @@ if (typeof unsafeWindow == 'undefined') {
         let footer = $('.footer-main-list .mains-navbtn')
         for (let i = 0; i < footer.length; i++) {
             if (footer[i].innerHTML == "我要选课") {
-                target = i
+                target = i + 1
                 break
             }
         }

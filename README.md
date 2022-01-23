@@ -13,9 +13,13 @@
 ### 1. 通过脚本管理器安装  
 把[SUSTechTISHelper.js](SUSTechTISHelper.js)添加进管理器就行。
 ### 2. 通过浏览器console导入  
-打开tis和选课界面，按F12或在页面中右键-检查，选择上方的Console，然后将以下代码粘贴并回车即可。
+打开tis和选课界面，在页面中**除标题栏和底栏的位置**右键-检查，选择上方的Console。
+
+这里需要确保console标签下面一栏Filter左边没有top字样，然后将以下代码粘贴进console，回车即可。
    ``` js
-    //还没写完，我得先把代码扔github上测一下
+      $(document.head).append('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/Fros1er/Timetable/Timetables.min.js">');
+      $(document.head).append('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/Fros1er/SUSTechTISHelper/SUSTechTISHelper.min.js">');
+      $(document.head).append('<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Fros1er/SUSTechTISHelper/SUSTechTISHelper.min.css">');
    ```
 
 导入后，可以在选课页的左侧看到多出来的几个按钮。
