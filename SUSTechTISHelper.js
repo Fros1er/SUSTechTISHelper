@@ -16,7 +16,7 @@ if (typeof unsafeWindow == 'undefined') {
         let footer = $('.footer-main-list .mains-navbtn')
         for (let i = 0; i < footer.length; i++) {
             if (footer[i].innerHTML == "我要选课") {
-                target = i + 1
+                target = i
                 break
             }
         }
@@ -155,7 +155,7 @@ function genTimetableOption(isInit) {
 }
 
 function addBtn() {
-    const rows = $('.ivu-table-body.ivu-table-overflowY .ivu-table-row')
+    const rows = $('.ivu-table-body .ivu-table-row')
     if ($('td:first button', rows).length != 0) {
         return
     }
