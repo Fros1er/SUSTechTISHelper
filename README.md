@@ -24,5 +24,9 @@
 
 导入后，可以在选课页的左侧看到多出来的几个按钮。
 
+## 一些截图
+![](img/1.png)
+![](img/2.png)
+
 ## LICENSE
 本项目由Apache-2.0协议开源，并使用由MIT协议开源的[Timetable](https://github.com/Hzy0913/Timetable)（虽然用的是自己fork的版本）
