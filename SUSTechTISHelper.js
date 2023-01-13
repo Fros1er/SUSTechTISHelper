@@ -210,9 +210,9 @@ function addBtn() {
             unsafeWindow.addToStashTable = function (btn) {
                 const row = $('td', btn.parentNode.parentNode)
                 const clsName = $('span', row[0]).html()
-                const teacher = $('a', row[8]).html()
+                const teacher = $('a', row[9]).html()
                 const timeStrs = []
-                $('.ivu-tag-cyan p', row[8]).each(function () {
+                $('.ivu-tag-cyan p', row[9]).each(function () {
                     timeStrs.push(this.innerHTML)
                 })
                 let changed = false
