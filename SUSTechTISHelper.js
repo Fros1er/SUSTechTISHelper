@@ -6,8 +6,8 @@
 // @author       Froster
 // @match        https://tis.sustech.edu.cn/Xsxk*
 // @grant        GM_addStyle
-// @grant       unsafeWindow
-// @require      https://raw.githubusercontent.com/Fros1er/Timetable/master/Timetables.min.js
+// @grant        unsafeWindow
+// @require      https://cdn.jsdelivr.net/gh/Fros1er/Timetable/Timetables.min.js
 // ==/UserScript==
 
 if (typeof unsafeWindow == 'undefined') {
@@ -21,7 +21,7 @@ if (typeof unsafeWindow == 'undefined') {
             }
         }
         if (target == undefined) {
-            console.error("加载失败，请确保您的console是在tis上打开的")
+            return
         }
         unsafeWindow = window.frames[target]
     } else {
@@ -100,7 +100,57 @@ if (typeof GM_addStyle != 'undefined') {
 }
 
 .modal-body {padding: 2px 16px;}
+
+.us-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  background: #FFF;
+  padding: 22px;
+  width: auto;
+  max-width: 500px;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
+.us-popup-inner {
+    margin: 0 22px;
+}
+
+.us-popup-close {
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  z-index: 10000;
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: 0.65;
+  font-size: 28px;
+}
+
+.us-popup-reader {
+    overflow-y: scroll;
+    max-height: 500px;
+}
 `);
+}
+
+function generatePopupDiv() {
+    let popup = $("<div class='us-popup'></div>");
+    let inner = $("<div class='us-popup-inner'></div>");
+    let btn = $("<button type='button' class='us-popup-close'>×</button>");
+    btn.on("click", () => {
+        popup.hide();
+    });
+    popup.append(btn);
+    popup.append(inner);
+    popup.hide();
+    return [popup, inner];
 }
 
 const timetableType = [
@@ -245,7 +295,21 @@ function addBtn() {
 
 (function () {
     'use strict';
-    if (typeof unsafeWindow != 'undefined') {
-        setInterval(addBtn, 500)
+    const divs = generatePopupDiv()
+    const popup = divs[0], inner = divs[1]
+    $('body').append(popup)
+    let err = false
+    if (typeof unsafeWindow == 'undefined') {
+        inner.append("加载失败。如果您是在浏览器中直接导入的，请确保您的console是通过右键选课页面中除标题栏和底栏的位置打开的。<br />")
+        err = true
     }
+    if (typeof Timetables == 'undefined') {
+        inner.append("课程表样式加载失败。请检查网络（或者挂个梯子试试？）<br />")
+        err = true
+    }
+    if (err) {
+        popup.show()
+        return
+    }
+    setInterval(addBtn, 500)
 })();

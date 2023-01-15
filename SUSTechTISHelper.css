@@ -48,6 +48,7 @@
         top: -300px;
         opacity: 0
     }
+
     to {
         top: 0;
         opacity: 1
@@ -59,6 +60,7 @@
         top: -300px;
         opacity: 0
     }
+
     to {
         top: 0;
         opacity: 1
@@ -99,4 +101,41 @@
 
 .modal-body {
     padding: 2px 16px;
+}
+
+.us-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    background: #FFF;
+    padding: 22px;
+    width: auto;
+    max-width: 500px;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+}
+
+.us-popup-inner {
+    margin: 0 22px;
+}
+
+.us-popup-close {
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    z-index: 10000;
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    opacity: 0.65;
+    font-size: 28px;
+}
+
+.us-popup-reader {
+    overflow-y: scroll;
+    max-height: 500px;
 }
