@@ -20,10 +20,9 @@ if (typeof unsafeWindow == 'undefined') {
                 break
             }
         }
-        if (target == undefined) {
-            return
+        if (target != undefined) {
+            unsafeWindow = window.frames[target]
         }
-        unsafeWindow = window.frames[target]
     } else {
         unsafeWindow = window
     }
