@@ -258,12 +258,21 @@ function addBtn() {
             modal.hide();
             unsafeWindow.addToStashTable = function (btn) {
                 const row = $('td', btn.parentNode.parentNode)
-                const clsName = $('span', row[0]).html()
-                const teacher = $('a', row[9]).html()
+                let clsName = $('span', row[0]).html()
+                let teacher = $('a', row[9]).html()
                 const timeStrs = []
-                $('.ivu-tag-cyan p', row[9]).each(function () {
-                    timeStrs.push(this.innerHTML)
-                })
+                if (clsName == "待生效") {
+                    clsName = $('span', row[3]).html()
+                    teacher = $('a', row[11]).html()
+                    $('.ivu-tag-cyan p', row[11]).each(function () {
+                        timeStrs.push(this.innerHTML)
+                    })
+                } else {
+                    $('.ivu-tag-cyan p', row[9]).each(function () {
+                        timeStrs.push(this.innerHTML)
+                    })
+                }
+
                 let changed = false
                 for (let s of timeStrs) {
                     let res = s.match("星期(.)第(\\d+\)-(\\d+)节")
