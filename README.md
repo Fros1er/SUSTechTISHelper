@@ -30,3 +30,7 @@
 
 ## LICENSE
 本项目由Apache-2.0协议开源，并使用由MIT协议开源的[Timetable](https://github.com/Hzy0913/Timetable)（虽然用的是自己fork的版本）
+
+## Special Thanks
+感谢[牛娃小镇](https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=Mzg4MjcwNzQxOQ==&scene=124#wechat_redirect)的支持！！  
+~~本来没有这一节的，然后人非常nice的欧阳大康突然v了一箱奶，感动~~
