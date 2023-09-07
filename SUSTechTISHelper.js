@@ -299,6 +299,31 @@ function addBtn() {
         })
         $('td:first', this).append(btn)
     })
+    return
+}
+
+function calculateTotalPoint() {
+    const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
+    if (!tab.text().includes("已选") || $(".tis-helper-marker-display").length != 0) {
+        return
+    }
+    const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input")
+    if (inputs.length == 0) {
+        return
+    }
+    let sum = 0
+    inputs.each(function () {
+        sum += parseInt(this.value)
+    })
+    let display = $(`<div class="ivu-alert ivu-alert-error tis-helper-marker-display" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
+                        <span>已用分数：${sum}，剩余分数：${100 - sum}</span>
+                    </span></div>`)
+    $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
+}
+
+function startReferesh() {
+    setInterval(addBtn, 500)
+    setInterval(calculateTotalPoint, 500)
 }
 
 (function () {
@@ -319,5 +344,5 @@ function addBtn() {
         popup.show()
         return
     }
-    setInterval(addBtn, 500)
+    startReferesh()
 })();
