@@ -288,6 +288,12 @@ function addBtn() {
                     localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
                 }
             }
+            //ADD: 搜索框按下回车键时触发搜索
+            document.querySelector("#app > div.ivu-layout > div.ivu-layout-header > div > div > form > div:nth-child(5) > div > div > div > input").addEventListener('keydown', function (event) {
+                if (event.keyCode === 13) {
+                    document.querySelector("#app > div.ivu-layout > div.ivu-layout-header > div > div > form > div.ivu-col.ivu-col-span-4 > div > div > button").click();
+                }
+            });
             loadedCustomCourseTable = true
         }
     }
