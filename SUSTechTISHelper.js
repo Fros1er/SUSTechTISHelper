@@ -289,9 +289,9 @@ function addBtn() {
                 }
             }
             //ADD: 搜索框按下回车键时触发搜索
-            document.querySelector("#app > div.ivu-layout > div.ivu-layout-header > div > div > form > div:nth-child(5) > div > div > div > input").addEventListener('keydown', function (event) {
+            $("input[placeholder=课程]").addEventListener('keydown', function (event) {
                 if (event.keyCode === 13) {
-                    document.querySelector("#app > div.ivu-layout > div.ivu-layout-header > div > div > form > div.ivu-col.ivu-col-span-4 > div > div > button").click();
+                    $('button:contains("查询")')[0].click();;
                 }
             });
             loadedCustomCourseTable = true
@@ -329,9 +329,39 @@ function calculateTotalPoint() {
     }
 }
 
+//ADD：自动高亮已选超出容量的课程
+function hightlightRiskyCourses() {
+    const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
+    if (!tab.text().includes("已选")) {
+        return
+    }
+    $(document).ready(function () {
+        $('span').each(function () {
+            var matches = $(this).text().match(/容量：(\d+).*已选人数：(\d+)/);
+            if (matches) {
+                if (parseInt(matches[2]) > parseInt(matches[1])) {
+                    $(this).css('color', 'red');
+                }
+            }
+        });
+    });
+}
+//ADD: 链接教师到评教平台
+function addSearchLinks() {
+    var links = $('a[href="javascript:void(0);"]').filter(function () {
+        return $(this).text().trim() !== '';
+    });
+    links.each(function () {
+        $(this).attr('href', 'https://nces.cra.moe/search/?q=' + $(this).text());
+        $(this).attr('target', '_blank');
+    });
+}
+
 function startReferesh() {
     setInterval(addBtn, 1000)
     setInterval(calculateTotalPoint, 1000)
+    setInterval(hightlightRiskyCourses, 1000)
+    setInterval(addSearchLinks, 1000)
 }
 
 (function () {
