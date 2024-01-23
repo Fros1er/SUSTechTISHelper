@@ -331,19 +331,13 @@ function calculateTotalPoint() {
 
 //ADD：自动高亮已选超出容量的课程
 function hightlightRiskyCourses() {
-    const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
-    if (!tab.text().includes("已选")) {
-        return
-    }
-    $(document).ready(function () {
-        $('span').each(function () {
-            var matches = $(this).text().match(/容量：(\d+).*已选人数：(\d+)/);
-            if (matches) {
-                if (parseInt(matches[2]) > parseInt(matches[1])) {
-                    $(this).css('color', 'red');
-                }
+    $('span').each(function () {
+        var matches = $(this).text().match(/容量：(\d+).*已选人数：(\d+)/);
+        if (matches) {
+            if (parseInt(matches[2]) > parseInt(matches[1])) {
+                $(this).css('color', 'red');
             }
-        });
+        }
     });
 }
 //ADD: 链接教师到评教平台
