@@ -289,7 +289,7 @@ function addBtn() {
                 }
             }
             //ADD: 搜索框按下回车键时触发搜索
-            $("input[placeholder=课程]").addEventListener('keydown', function (event) {
+            $("input[placeholder=课程]")[0].addEventListener('keydown', function (event) {
                 if (event.keyCode === 13) {
                     $('button:contains("查询")')[0].click();;
                 }
@@ -356,12 +356,33 @@ function addSearchLinks() {
         $(this).attr('target', '_blank');
     });
 }
+//ADD: 隐藏及显示课程信息
+function toggleInfoVisibility() {
+    $('.ivu-tag-text').toggle();
+    var $infoElement = $('b:contains("上课信息")');
+    if ($('.ivu-tag-text').is(':visible')) {
+        $infoElement.text('上课信息(点此隐藏):');
+        $('.ivu-tag-text').parent().addClass('ivu-tag-checked');
+    } else {
+        $infoElement.text('上课信息(点此显示)');
+        $('.ivu-tag-text').parent().removeClass('ivu-tag-checked');
+    }
+}
+
+function initInfoVisibility() {
+    if ($('b:contains("上课信息:")').length == 0) {
+        return;
+    }
+    toggleInfoVisibility();
+    $('b:contains("上课信息")').click(toggleInfoVisibility);
+}
 
 function startReferesh() {
     setInterval(addBtn, 1000)
     setInterval(calculateTotalPoint, 1000)
     setInterval(hightlightRiskyCourses, 1000)
     setInterval(addSearchLinks, 1000)
+    setInterval(initInfoVisibility, 1000)
 }
 
 (function () {
