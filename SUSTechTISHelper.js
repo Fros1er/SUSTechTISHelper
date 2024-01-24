@@ -245,7 +245,8 @@ function addBtn() {
                     localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
                 }
             })
-            $('.ivu-layout-header button').eq(6).after(removeAllBtn).after(btn)
+            let foldbtn = $('<button class="ivu-btn ivu-btn-info"><span>课程时间表</span></button>')
+            $('.ivu-layout-header button').eq(6).after(removeAllBtn).after(btn).after(foldbtn)
             $('#app').append(modal)
             unsafeWindow.timetableArray = JSON.parse(localStorage.getItem("timetableArray")) || [
                 [[], [], [], [], [], [], [], [], [], [], []],
@@ -351,30 +352,51 @@ function addSearchLinks() {
     });
 }
 //ADD: 隐藏及显示课程信息
-function toggleInfoVisibility() {
-    $('.ivu-tag-text').toggle();
-    var $infoElement = $('b:contains("上课信息")');
-    if ($('.ivu-tag-text').is(':visible')) {
-        $infoElement.text('上课信息(点此隐藏):');
-        $('.ivu-tag-text').parent().addClass('ivu-tag-checked');
-        document.cookie = 'hideTimeTable=0';
-    } else {
-        $infoElement.text('上课信息(点此显示)');
-        $('.ivu-tag-text').parent().removeClass('ivu-tag-checked');
-        document.cookie = 'hideTimeTable=1';
-    }
+function showInfo() {
+    $('.ivu-tag-text').show();
+    $('.ivu-tag-text').parent().addClass('ivu-tag-checked');
+    $('button:contains("课程时间表")').text('折叠课程时间表');
 }
 
+function hideInfo() {
+    $('.ivu-tag-text').hide();
+    $('.ivu-tag-text').parent().removeClass('ivu-tag-checked');
+    $('button:contains("课程时间表")').text('展开课程时间表');
+}
 function initInfoVisibility() {
-    if ($('b:contains("上课信息:")').length == 0) {
-        return;
+    if ($('b:contains("上课信息:")').length == 0) return;
+    if (!getCookie("hideTimeTable") || getCookie("hideTimeTable") == '0') {
+        $('button:contains("课程时间表")').text('折叠课程时间表');
+        setCookie("hideTimeTable", "0");
+    } else {
+        if (!$('.ivu-tag-text').is(':visible')) return;
+        hideInfo();
     }
-    $('b:contains("上课信息")').text('上课信息(点此隐藏):').click(toggleInfoVisibility);
-    if (!document.cookie.includes('hideTimeTable') || document.cookie.includes('hideTimeTable=0')) {
-        document.cookie = 'hideTimeTable=0';
-        return;
+    $('button:contains("课程时间表")').off('click').on('click', function () {
+        if (getCookie("hideTimeTable") == '0') {
+            hideInfo();
+            setCookie("hideTimeTable", "1");
+        } else {
+            showInfo();
+            setCookie("hideTimeTable", "0");
+        }
+    });
+}
+
+function setCookie(name, value) {
+    document.cookie = name + "=" + value + "; path=/";
+}
+
+function getCookie(name) {
+    var cookieName = name + "=";
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.indexOf(cookieName) === 0) {
+            return cookie.substring(cookieName.length, cookie.length);
+        }
     }
-    toggleInfoVisibility();
+    return null;
 }
 
 function startReferesh() {
