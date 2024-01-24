@@ -357,9 +357,11 @@ function toggleInfoVisibility() {
     if ($('.ivu-tag-text').is(':visible')) {
         $infoElement.text('上课信息(点此隐藏):');
         $('.ivu-tag-text').parent().addClass('ivu-tag-checked');
+        document.cookie = 'hideTimeTable=0';
     } else {
         $infoElement.text('上课信息(点此显示)');
         $('.ivu-tag-text').parent().removeClass('ivu-tag-checked');
+        document.cookie = 'hideTimeTable=1';
     }
 }
 
@@ -367,8 +369,12 @@ function initInfoVisibility() {
     if ($('b:contains("上课信息:")').length == 0) {
         return;
     }
+    $('b:contains("上课信息")').text('上课信息(点此隐藏):').click(toggleInfoVisibility);
+    if (!document.cookie.includes('hideTimeTable') || document.cookie.includes('hideTimeTable=0')) {
+        document.cookie = 'hideTimeTable=0';
+        return;
+    }
     toggleInfoVisibility();
-    $('b:contains("上课信息")').click(toggleInfoVisibility);
 }
 
 function startReferesh() {
