@@ -290,10 +290,9 @@ function addBtn() {
                 }
             }
             //ADD: 搜索框按下回车键时触发搜索
-            $("input[placeholder=课程]")[0].addEventListener('keydown', function (event) {
-                if (event.keyCode === 13) {
-                    $('button:contains("查询")')[0].click();;
-                }
+            $("input[placeholder=课程]")[0].setAttribute("placeholder", "课程(按Enter搜索)");
+            $("input[placeholder=课程]")[0].addEventListener('keydown', function (e) {
+                if (e.keyCode === 13) $('button:contains("查询")')[0].click();
             });
             loadedCustomCourseTable = true
         }
@@ -356,12 +355,14 @@ function showInfo() {
     $('.ivu-tag-text').show();
     $('.ivu-tag-text').parent().addClass('ivu-tag-checked');
     $('button:contains("课程时间表")').text('折叠课程时间表');
+    $('b:contains("上课信息")').text('上课信息:');
 }
 
 function hideInfo() {
     $('.ivu-tag-text').hide();
     $('.ivu-tag-text').parent().removeClass('ivu-tag-checked');
     $('button:contains("课程时间表")').text('展开课程时间表');
+    $('b:contains("上课信息")').text('上课信息(已折叠)');
 }
 function initInfoVisibility() {
     if ($('b:contains("上课信息:")').length == 0) return;
@@ -404,7 +405,7 @@ function startReferesh() {
     setInterval(calculateTotalPoint, 1000)
     setInterval(hightlightRiskyCourses, 1000)
     setInterval(addSearchLinks, 1000)
-    setInterval(initInfoVisibility, 1000)
+    setInterval(initInfoVisibility, 200)
 }
 
 (function () {
