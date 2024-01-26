@@ -396,10 +396,10 @@ function getCookie(name) {
 
 function handleSearchInput() {
     //ADD: 搜索框按下回车键时触发搜索
-    $("input[placeholder=课程]")[0].setAttribute("placeholder", "课程(按Enter搜索)");
     $("input[placeholder=课程]")[0].addEventListener('keydown', function (e) {
         if (e.keyCode === 13) $('button:contains("查询")')[0].click();
     });
+    $("input[placeholder=课程]")[0].setAttribute("placeholder", "课程(按Enter搜索)");
     loadedCustomCourseTable = true
 }
 
