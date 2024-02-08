@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SUSTech TIS Helper
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  一个让妮可选课系统方便点的脚本
 // @author       Froster
 // @match        https://tis.sustech.edu.cn/Xsxk*
@@ -245,7 +245,8 @@ function addBtn() {
                     localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
                 }
             })
-            $('.ivu-layout-header button').eq(6).after(removeAllBtn).after(btn)
+            let foldbtn = $('<button class="ivu-btn ivu-btn-info"><span>课程时间表</span></button>')
+            $('.ivu-layout-header button').eq(6).after(removeAllBtn).after(btn).after(foldbtn)
             $('#app').append(modal)
             unsafeWindow.timetableArray = JSON.parse(localStorage.getItem("timetableArray")) || [
                 [[], [], [], [], [], [], [], [], [], [], []],
@@ -288,7 +289,6 @@ function addBtn() {
                     localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
                 }
             }
-            loadedCustomCourseTable = true
         }
     }
     rows.each(function () {
@@ -323,9 +323,93 @@ function calculateTotalPoint() {
     }
 }
 
+// 自动高亮已选超出容量的课程
+function hightlightRiskyCourses() {
+    $('span').each(function () {
+        var matches = $(this).text().match(/容量：(\d+).*已选人数：(\d+)/);
+        if (matches) {
+            if (parseInt(matches[2]) > parseInt(matches[1])) {
+                $(this).css('color', 'red');
+            }
+        }
+    });
+}
+// 链接教师到评教平台
+function addSearchLinks() {
+    var links = $('a[href="javascript:void(0);"]').filter(function () {
+        return $(this).text().trim() !== '';
+    });
+    links.each(function () {
+        $(this).attr('href', 'https://nces.cra.moe/search/?q=' + $(this).text());
+        $(this).attr('target', '_blank');
+    });
+}
+// 隐藏及显示课程信息
+function showInfo() {
+    $('.ivu-tag-text').show();
+    $('.ivu-tag-text').parent().addClass('ivu-tag-checked');
+    $('button:contains("课程时间表")').text('折叠课程时间表');
+    $('b:contains("上课信息")').text('上课信息:');
+}
+
+function hideInfo() {
+    $('.ivu-tag-text').hide();
+    $('.ivu-tag-text').parent().removeClass('ivu-tag-checked');
+    $('button:contains("课程时间表")').text('展开课程时间表');
+    $('b:contains("上课信息")').text('上课信息(已折叠)');
+}
+function initInfoVisibility() {
+    if ($('b:contains("上课信息:")').length == 0) return;
+    if (!getCookie("hideTimeTable") || getCookie("hideTimeTable") == '0') {
+        $('button:contains("课程时间表")').text('折叠课程时间表');
+        setCookie("hideTimeTable", "0");
+    } else {
+        if (!$('.ivu-tag-text').is(':visible')) return;
+        hideInfo();
+    }
+    $('button:contains("课程时间表")').off('click').on('click', function () {
+        if (getCookie("hideTimeTable") == '0') {
+            hideInfo();
+            setCookie("hideTimeTable", "1");
+        } else {
+            showInfo();
+            setCookie("hideTimeTable", "0");
+        }
+    });
+}
+
+function setCookie(name, value) {
+    document.cookie = name + "=" + value + "; path=/";
+}
+
+function getCookie(name) {
+    var cookieName = name + "=";
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.indexOf(cookieName) === 0) {
+            return cookie.substring(cookieName.length, cookie.length);
+        }
+    }
+    return null;
+}
+
+function handleSearchInput() {
+    // 搜索框按下回车键时触发搜索
+    $("input[placeholder=课程]")[0].addEventListener('keydown', function (e) {
+        if (e.keyCode === 13) $('button:contains("查询")')[0].click();
+    });
+    $("input[placeholder=课程]")[0].setAttribute("placeholder", "课程(按Enter搜索)");
+    loadedCustomCourseTable = true
+}
+
 function startReferesh() {
     setInterval(addBtn, 1000)
     setInterval(calculateTotalPoint, 1000)
+    setInterval(hightlightRiskyCourses, 1000)
+    setInterval(addSearchLinks, 1000)
+    setInterval(initInfoVisibility, 200)
+    setInterval(handleSearchInput, 1000)
 }
 
 (function () {
