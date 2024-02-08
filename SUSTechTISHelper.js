@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SUSTech TIS Helper
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  一个让妮可选课系统方便点的脚本
 // @author       Froster
 // @match        https://tis.sustech.edu.cn/Xsxk*
@@ -323,7 +323,7 @@ function calculateTotalPoint() {
     }
 }
 
-//ADD：自动高亮已选超出容量的课程
+// 自动高亮已选超出容量的课程
 function hightlightRiskyCourses() {
     $('span').each(function () {
         var matches = $(this).text().match(/容量：(\d+).*已选人数：(\d+)/);
@@ -334,7 +334,7 @@ function hightlightRiskyCourses() {
         }
     });
 }
-//ADD: 链接教师到评教平台
+// 链接教师到评教平台
 function addSearchLinks() {
     var links = $('a[href="javascript:void(0);"]').filter(function () {
         return $(this).text().trim() !== '';
@@ -344,7 +344,7 @@ function addSearchLinks() {
         $(this).attr('target', '_blank');
     });
 }
-//ADD: 隐藏及显示课程信息
+// 隐藏及显示课程信息
 function showInfo() {
     $('.ivu-tag-text').show();
     $('.ivu-tag-text').parent().addClass('ivu-tag-checked');
@@ -395,7 +395,7 @@ function getCookie(name) {
 }
 
 function handleSearchInput() {
-    //ADD: 搜索框按下回车键时触发搜索
+    // 搜索框按下回车键时触发搜索
     $("input[placeholder=课程]")[0].addEventListener('keydown', function (e) {
         if (e.keyCode === 13) $('button:contains("查询")')[0].click();
     });
