@@ -246,7 +246,16 @@ function addBtn() {
                 }
             })
             let foldbtn = $('<button class="ivu-btn ivu-btn-info"><span>课程时间表</span></button>')
-            $('.ivu-layout-header button').eq(6).after(removeAllBtn).after(btn).after(foldbtn)
+            let editScoreBtn = $('<button class="ivu-btn ivu-btn-info"><span>设置总积分</span></button>').on('click', function () {
+                let score = prompt("请输入总积分", 100)
+                if (score != null && score >= 100) {
+                    setCookie("totalPoint", score)
+                    alert("设置成功")
+                } else {
+                    alert("请输入大于等于100的数字")
+                }
+            })
+            $('.ivu-layout-header button').eq(6).after(editScoreBtn).after(removeAllBtn).after(btn).after(foldbtn)
             $('#app').append(modal)
             unsafeWindow.timetableArray = JSON.parse(localStorage.getItem("timetableArray")) || [
                 [[], [], [], [], [], [], [], [], [], [], []],
@@ -313,13 +322,18 @@ function calculateTotalPoint() {
         sum += parseInt(this.value)
     })
     const marker = $(".tis-helper-marker-display")
+    // 自定义总积分
+    score = getCookie("totalPoint") || 100
+    if (isNaN(score) || score < 100) {
+        score = 100
+    }
     if (marker.length == 0) {
         let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
-            <span class="tis-helper-marker-display">已用分数：${sum}，剩余分数：${100 - sum}</span>
+            <span class="tis-helper-marker-display">已用分数：${sum}，剩余分数：${score - sum}</span>
         </span></div>`)
         $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
     } else {
-        marker.html(`已用分数：${sum}，剩余分数：${100 - sum}`)
+        marker.html(`已用分数：${sum}，剩余分数：${score - sum}`)
     }
 }
 
@@ -396,6 +410,7 @@ function getCookie(name) {
 
 function handleSearchInput() {
     // 搜索框按下回车键时触发搜索
+    if (loadedCustomCourseTable) return;
     $("input[placeholder=课程]")[0].addEventListener('keydown', function (e) {
         if (e.keyCode === 13) $('button:contains("查询")')[0].click();
     });
