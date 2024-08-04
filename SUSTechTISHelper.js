@@ -302,24 +302,90 @@ function addBtn() {
     return
 }
 
-function calculateTotalPoint() {
-    const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
-    if (!tab.text().includes("已选")) {
-        return
+let remainingPoints;    // Variable to store the remaining points
+let usedPoints;         // Variable to store the used points
+let totalPoints;        // Variable to store the total points
+
+let isRemainingPointsUpdated = false;   // If the remaining points are updated
+let isUsedPointsUpdated = false;        // If the used points are updated
+
+// Function to fetch the remaining points from the webpage
+function fetchRemainingPoints() {
+    const tab = $(".ivu-tabs-tab-active");
+    if (tab.text().includes("已选")) {
+        return;
     }
-    const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input")
-    let sum = 0
+
+    console.log("Fetching remaining points");
+
+    const remainingPointsElement = $(".ivu-alert-message").find("span:contains('剩余积分')").text();
+    const remainingPointsMatch = remainingPointsElement.match(/剩余积分:(\d+(\.\d+)?)/);
+    if (remainingPointsMatch) {
+        const temp = parseFloat(remainingPointsMatch[1]);
+        if (remainingPoints !== temp) {
+            remainingPoints = temp;
+            isRemainingPointsUpdated = true;
+        }
+        console.log(`Remaining points fetched: ${remainingPoints}`);
+    } else {
+        console.error("Remaining points not found");
+    }
+}
+
+// Function to fetch and calculate the used points of selected courses
+function fetchUsedPoints() {
+    const tab = $(".ivu-tabs-tab-active");
+    if (!tab.text().includes("已选")) {
+        return;
+    }
+
+    console.log("Fetching used points");
+
+    const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input");
+    let temp = 0;
     inputs.each(function () {
-        sum += parseInt(this.value)
-    })
-    const marker = $(".tis-helper-marker-display")
+        temp += parseInt(this.value);
+    });
+    if (usedPoints !== temp) {
+        usedPoints = temp;
+        isUsedPointsUpdated = true;
+    }
+    console.log(`Sum calculated: ${usedPoints}`);
+}
+
+// Function to check if both values are defined and update the display
+function updateDisplay() {
+    if (remainingPoints === undefined || usedPoints === undefined) {
+        return;
+    }
+
+    // The total point is constant and should only be defined once
+    if (totalPoints === undefined) {
+        totalPoints = remainingPoints + usedPoints;
+    }
+
+    // Since the remaining points and used points are in different tabs, we can only see the changes for one variable at a time
+    // But we do know the sum of the two variables should be constant
+    // So we can update the other variable based on the change of the first variable
+
+    if (isRemainingPointsUpdated){
+        isRemainingPointsUpdated = false;
+        usedPoints = totalPoints - remainingPoints;
+    }
+
+    if (isUsedPointsUpdated){
+        isUsedPointsUpdated = false;
+        remainingPoints = totalPoints - usedPoints;
+    }
+
+    const marker = $(".tis-helper-marker-display");
     if (marker.length == 0) {
         let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
-            <span class="tis-helper-marker-display">已用分数：${sum}，剩余分数：${100 - sum}</span>
-        </span></div>`)
-        $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
+            <span class="tis-helper-marker-display">总分：${totalPoints}，已用分数：${usedPoints}，剩余分数：${remainingPoints}</span>
+        </span></div>`);
+        $('.ivu-layout-header .ivu-alert-error').eq(0).after(display);
     } else {
-        marker.html(`已用分数：${sum}，剩余分数：${100 - sum}`)
+        marker.html(`总分：${totalPoints}，已用分数：${usedPoints}，剩余分数：${remainingPoints}`);
     }
 }
 
@@ -405,7 +471,9 @@ function handleSearchInput() {
 
 function startReferesh() {
     setInterval(addBtn, 1000)
-    setInterval(calculateTotalPoint, 1000)
+    setInterval(fetchRemainingPoints, 1000);
+    setInterval(fetchUsedPoints, 1000);
+    setInterval(updateDisplay, 1000);
     setInterval(hightlightRiskyCourses, 1000)
     setInterval(addSearchLinks, 1000)
     setInterval(initInfoVisibility, 200)
