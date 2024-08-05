@@ -384,6 +384,8 @@ function handleSearchInput() {
 
 let current_year;
 let current_semester;
+let remaining_point;
+let used_point;
 
 async function fetchPointFromAPI() {
 
@@ -422,8 +424,6 @@ async function fetchPointFromAPI() {
     }
 
     const last_year = current_year - 1;
-    let remaining_point = 0;
-    let used_point = 0;
 
     try {
         const response = await fetch('https://tis.sustech.edu.cn/Xsxk/queryKxrw', {
@@ -448,7 +448,6 @@ async function fetchPointFromAPI() {
         const data = await response.json();
         const selected_course = data["yxkcList"];
         remaining_point = parseInt(data["xsxkPage"]["xkgzszOne"]["jfxs"]);
-
         used_point = selected_course.reduce((sum, course) => {
             if (course["xkxs"] !== null) { // 后置课程此项为null
                 sum += parseInt(course["xkxs"]);
@@ -472,8 +471,53 @@ async function fetchPointFromAPI() {
     }
 }
 
+function checkPointUpdate() {
+    const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
+    if (tab.text().includes("已选")) {
+        const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input");
+        let temp_used_point = 0;
+        inputs.each(function () {
+            temp_used_point += parseInt(this.value);
+        });
+
+        if (temp_used_point !== used_point) {
+            remaining_point = used_point + remaining_point - temp_used_point;
+            used_point = temp_used_point;
+            const marker = $(".tis-helper-marker-display")
+            if (marker.length == 0) {
+                let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
+                    <span class="tis-helper-marker-display">总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}</span>
+                </span></div>`)
+                $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
+            } else {
+                marker.html(`总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}`)
+            }
+        }
+    } else {
+        const remainingPointsElement = $(".ivu-alert-message").find("span:contains('剩余积分')").text();
+        const remainingPointsMatch = remainingPointsElement.match(/剩余积分:(\d+(\.\d+)?)/);
+        if (remainingPointsMatch) {
+            const temp_remaining_point = parseFloat(remainingPointsMatch[1]);
+            if (temp_remaining_point !== remaining_point) {
+                used_point = used_point + remaining_point - temp_remaining_point;
+                remaining_point = temp_remaining_point;
+                const marker = $(".tis-helper-marker-display")
+                if (marker.length == 0) {
+                    let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
+                        <span class="tis-helper-marker-display">总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}</span>
+                    </span></div>`)
+                    $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
+                } else {
+                    marker.html(`总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}`)
+                }
+            }
+        }
+    }
+}
+
 function startReferesh() {
     setInterval(fetchPointFromAPI, 1000)
+    setInterval(checkPointUpdate, 1000)
     setInterval(addBtn, 1000)
     setInterval(hightlightRiskyCourses, 1000)
     setInterval(addSearchLinks, 1000)
