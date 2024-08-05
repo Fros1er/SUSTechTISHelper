@@ -302,93 +302,6 @@ function addBtn() {
     return
 }
 
-let remainingPoints;    // Variable to store the remaining points
-let usedPoints;         // Variable to store the used points
-let totalPoints;        // Variable to store the total points
-
-let isRemainingPointsUpdated = false;   // If the remaining points are updated
-let isUsedPointsUpdated = false;        // If the used points are updated
-
-// Function to fetch the remaining points from the webpage
-function fetchRemainingPoints() {
-    const tab = $(".ivu-tabs-tab-active");
-    if (tab.text().includes("已选")) {
-        return;
-    }
-
-    console.log("Fetching remaining points");
-
-    const remainingPointsElement = $(".ivu-alert-message").find("span:contains('剩余积分')").text();
-    const remainingPointsMatch = remainingPointsElement.match(/剩余积分:(\d+(\.\d+)?)/);
-    if (remainingPointsMatch) {
-        const temp = parseFloat(remainingPointsMatch[1]);
-        if (remainingPoints !== temp) {
-            remainingPoints = temp;
-            isRemainingPointsUpdated = true;
-        }
-        console.log(`Remaining points fetched: ${remainingPoints}`);
-    } else {
-        console.error("Remaining points not found");
-    }
-}
-
-// Function to fetch and calculate the used points of selected courses
-function fetchUsedPoints() {
-    const tab = $(".ivu-tabs-tab-active");
-    if (!tab.text().includes("已选")) {
-        return;
-    }
-
-    console.log("Fetching used points");
-
-    const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input");
-    let temp = 0;
-    inputs.each(function () {
-        temp += parseInt(this.value);
-    });
-    if (usedPoints !== temp) {
-        usedPoints = temp;
-        isUsedPointsUpdated = true;
-    }
-    console.log(`Sum calculated: ${usedPoints}`);
-}
-
-// Function to check if both values are defined and update the display
-function updateDisplay() {
-    if (remainingPoints === undefined || usedPoints === undefined) {
-        return;
-    }
-
-    // The total point is constant and should only be defined once
-    if (totalPoints === undefined) {
-        totalPoints = remainingPoints + usedPoints;
-    }
-
-    // Since the remaining points and used points are in different tabs, we can only see the changes for one variable at a time
-    // But we do know the sum of the two variables should be constant
-    // So we can update the other variable based on the change of the first variable
-
-    if (isRemainingPointsUpdated){
-        isRemainingPointsUpdated = false;
-        usedPoints = totalPoints - remainingPoints;
-    }
-
-    if (isUsedPointsUpdated){
-        isUsedPointsUpdated = false;
-        remainingPoints = totalPoints - usedPoints;
-    }
-
-    const marker = $(".tis-helper-marker-display");
-    if (marker.length == 0) {
-        let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
-            <span class="tis-helper-marker-display">总分：${totalPoints}，已用分数：${usedPoints}，剩余分数：${remainingPoints}</span>
-        </span></div>`);
-        $('.ivu-layout-header .ivu-alert-error').eq(0).after(display);
-    } else {
-        marker.html(`总分：${totalPoints}，已用分数：${usedPoints}，剩余分数：${remainingPoints}`);
-    }
-}
-
 // 自动高亮已选超出容量的课程
 function hightlightRiskyCourses() {
     $('span').each(function () {
@@ -469,11 +382,99 @@ function handleSearchInput() {
     loadedCustomCourseTable = true
 }
 
+let current_year;
+let current_semester;
+
+async function fetchPointFromAPI() {
+
+    const regex = /^(\d{4})(春|夏|秋)季$/;
+    const seasonMapping = {
+        春: 2,
+        夏: 3,
+        秋: 1
+    };
+    const selectedElements = $(".ivu-layout .ivu-select-selection .ivu-select-selected-value");
+
+    let need_update = false;
+    let temp_year, temp_semester;
+
+    selectedElements.each(function () {
+        const matches = $(this).text().trim().match(regex);
+        if (matches) {
+            temp_year = parseInt(matches[1]);
+            temp_semester = seasonMapping[matches[2]];
+            if (temp_semester === 1) {
+                temp_year += 1;
+            }
+
+            if (current_year !== temp_year || current_semester !== temp_semester) {
+                need_update = true;
+                current_year = temp_year;
+                current_semester = temp_semester;
+            }
+
+            return false;
+        }
+    });
+
+    if (!need_update) {
+        return;
+    }
+
+    const last_year = current_year - 1;
+    let remaining_point = 0;
+    let used_point = 0;
+
+    try {
+        const response = await fetch('https://tis.sustech.edu.cn/Xsxk/queryKxrw', {
+            method: "POST",
+            headers: {
+                "accept": "*/*",
+                "accept-language": "zh-CN,zh;q=0.9",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "rolecode": "01",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "x-requested-with": "XMLHttpRequest"
+            },
+            referrer: "https://tis.sustech.edu.cn/Xsxk/query/1",
+            referrerPolicy: "strict-origin-when-cross-origin",
+            body: `cxsfmt=0&p_pylx=1&mxpylx=1&p_sfgldjr=0&p_sfredis=0&p_sfsyxkgwc=0&p_xn=${last_year}-${current_year}&p_xq=${current_semester}&p_xnxq=${last_year}-${current_year}${current_semester}&p_xkfsdm=bxxk`,
+            mode: "cors",
+            credentials: "include"
+        });
+
+        const data = await response.json();
+        const selected_course = data["yxkcList"];
+        remaining_point = parseInt(data["xsxkPage"]["xkgzszOne"]["jfxs"]);
+
+        used_point = selected_course.reduce((sum, course) => {
+            if (course["xkxs"] !== null) { // 后置课程此项为null
+                sum += parseInt(course["xkxs"]);
+            }
+            return sum;
+        }, 0);
+
+    } catch (error) {
+        // console.error(error);
+        return;
+    }
+
+    const marker = $(".tis-helper-marker-display")
+    if (marker.length == 0) {
+        let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
+            <span class="tis-helper-marker-display">总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}</span>
+        </span></div>`)
+        $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
+    } else {
+        marker.html(`总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}`)
+    }
+}
+
 function startReferesh() {
+    setInterval(fetchPointFromAPI, 1000)
     setInterval(addBtn, 1000)
-    setInterval(fetchRemainingPoints, 1000);
-    setInterval(fetchUsedPoints, 1000);
-    setInterval(updateDisplay, 1000);
     setInterval(hightlightRiskyCourses, 1000)
     setInterval(addSearchLinks, 1000)
     setInterval(initInfoVisibility, 200)
