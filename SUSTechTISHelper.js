@@ -386,42 +386,14 @@ let current_year;
 let current_semester;
 let remaining_point;
 let used_point;
+let need_update = false;
 
 async function fetchPointFromAPI() {
-
-    const regex = /^(\d{4})(春|夏|秋)季$/;
-    const seasonMapping = {
-        春: 2,
-        夏: 3,
-        秋: 1
-    };
-    const selectedElements = $(".ivu-layout .ivu-select-selection .ivu-select-selected-value");
-
-    let need_update = false;
-    let temp_year, temp_semester;
-
-    selectedElements.each(function () {
-        const matches = $(this).text().trim().match(regex);
-        if (matches) {
-            temp_year = parseInt(matches[1]);
-            temp_semester = seasonMapping[matches[2]];
-            if (temp_semester === 1) {
-                temp_year += 1;
-            }
-
-            if (current_year !== temp_year || current_semester !== temp_semester) {
-                need_update = true;
-                current_year = temp_year;
-                current_semester = temp_semester;
-            }
-
-            return false;
-        }
-    });
 
     if (!need_update) {
         return;
     }
+    need_update = false;
 
     const last_year = current_year - 1;
 
@@ -472,6 +444,44 @@ async function fetchPointFromAPI() {
 }
 
 function checkPointUpdate() {
+
+    if (need_update) {
+        return;
+    }
+
+    const regex = /^(\d{4})(春|夏|秋)季$/;
+    const seasonMapping = {
+        春: 2,
+        夏: 3,
+        秋: 1
+    };
+    const selectedElements = $(".ivu-layout .ivu-select-selection .ivu-select-selected-value");
+
+    let temp_year, temp_semester;
+
+    selectedElements.each(function () {
+        const matches = $(this).text().trim().match(regex);
+        if (matches) {
+            temp_year = parseInt(matches[1]);
+            temp_semester = seasonMapping[matches[2]];
+            if (temp_semester === 1) {
+                temp_year += 1;
+            }
+
+            if (current_year !== temp_year || current_semester !== temp_semester) {
+                need_update = true;
+                current_year = temp_year;
+                current_semester = temp_semester;
+            }
+
+            return false;
+        }
+    });
+
+    if (need_update) {
+        return;
+    }
+
     const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
     if (tab.text().includes("已选")) {
         const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input");
@@ -481,35 +491,15 @@ function checkPointUpdate() {
         });
 
         if (temp_used_point !== used_point) {
-            remaining_point = used_point + remaining_point - temp_used_point;
-            used_point = temp_used_point;
-            const marker = $(".tis-helper-marker-display")
-            if (marker.length == 0) {
-                let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
-                    <span class="tis-helper-marker-display">总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}</span>
-                </span></div>`)
-                $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
-            } else {
-                marker.html(`总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}`)
-            }
+            need_update = true;
         }
     } else {
-        const remainingPointsElement = $(".ivu-alert-message").find("span:contains('剩余积分')").text();
+        const remainingPointsElement = $(".ivu-layout .ivu-layout-header .ivu-alert-message").find("span:contains('剩余积分')").text();
         const remainingPointsMatch = remainingPointsElement.match(/剩余积分:(\d+(\.\d+)?)/);
         if (remainingPointsMatch) {
             const temp_remaining_point = parseFloat(remainingPointsMatch[1]);
             if (temp_remaining_point !== remaining_point) {
-                used_point = used_point + remaining_point - temp_remaining_point;
-                remaining_point = temp_remaining_point;
-                const marker = $(".tis-helper-marker-display")
-                if (marker.length == 0) {
-                    let display = $(`<div class="ivu-alert ivu-alert-error" style="display: inline-block; margin-left: 0.5rem"><span class="ivu-alert-message">
-                        <span class="tis-helper-marker-display">总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}</span>
-                    </span></div>`)
-                    $('.ivu-layout-header .ivu-alert-error').eq(0).after(display)
-                } else {
-                    marker.html(`总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}`)
-                }
+                need_update = true;
             }
         }
     }
