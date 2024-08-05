@@ -440,7 +440,7 @@ async function fetchPointFromAPI() {
             },
             referrer: "https://tis.sustech.edu.cn/Xsxk/query/1",
             referrerPolicy: "strict-origin-when-cross-origin",
-            body: `cxsfmt=0&p_pylx=1&mxpylx=1&p_sfgldjr=0&p_sfredis=0&p_sfsyxkgwc=0&p_xn=${last_year}-${current_year}&p_xq=${current_semester}&p_xnxq=${last_year}-${current_year}${current_semester}&p_xkfsdm=bxxk`,
+            body: `cxsfmt=0&p_pylx=1&p_xn=${last_year}-${current_year}&p_xq=${current_semester}&p_xnxq=${last_year}-${current_year}${current_semester}&p_xkfsdm=bxxk`,
             mode: "cors",
             credentials: "include"
         });
