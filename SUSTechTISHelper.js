@@ -384,46 +384,18 @@ function handleSearchInput() {
 
 let current_year;
 let current_semester;
+let remaining_point;
+let used_point;
+let isFetching = false;
 
 async function fetchPointFromAPI() {
 
-    const regex = /^(\d{4})(春|夏|秋)季$/;
-    const seasonMapping = {
-        春: 2,
-        夏: 3,
-        秋: 1
-    };
-    const selectedElements = $(".ivu-layout .ivu-select-selection .ivu-select-selected-value");
-
-    let need_update = false;
-    let temp_year, temp_semester;
-
-    selectedElements.each(function () {
-        const matches = $(this).text().trim().match(regex);
-        if (matches) {
-            temp_year = parseInt(matches[1]);
-            temp_semester = seasonMapping[matches[2]];
-            if (temp_semester === 1) {
-                temp_year += 1;
-            }
-
-            if (current_year !== temp_year || current_semester !== temp_semester) {
-                need_update = true;
-                current_year = temp_year;
-                current_semester = temp_semester;
-            }
-
-            return false;
-        }
-    });
-
-    if (!need_update) {
+    if (isFetching) {
         return;
     }
+    isFetching = true;
 
     const last_year = current_year - 1;
-    let remaining_point = 0;
-    let used_point = 0;
 
     try {
         const response = await fetch('https://tis.sustech.edu.cn/Xsxk/queryKxrw', {
@@ -448,7 +420,6 @@ async function fetchPointFromAPI() {
         const data = await response.json();
         const selected_course = data["yxkcList"];
         remaining_point = parseInt(data["xsxkPage"]["xkgzszOne"]["jfxs"]);
-
         used_point = selected_course.reduce((sum, course) => {
             if (course["xkxs"] !== null) { // 后置课程此项为null
                 sum += parseInt(course["xkxs"]);
@@ -470,10 +441,78 @@ async function fetchPointFromAPI() {
     } else {
         marker.html(`总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}`)
     }
+
+    isFetching = false;
+}
+
+function checkPointUpdate() {
+
+    let need_update = false;
+
+    // 检查是否需要更新年份和学期
+    const regex = /^(\d{4})(春|夏|秋)季$/;
+    const seasonMapping = {
+        春: 2,
+        夏: 3,
+        秋: 1
+    };
+    const selectedElements = $(".ivu-layout .ivu-select-selection .ivu-select-selected-value");
+    let temp_year, temp_semester;
+
+    selectedElements.each(function () {
+        const matches = $(this).text().trim().match(regex);
+        if (matches) {
+            temp_year = parseInt(matches[1]);
+            temp_semester = seasonMapping[matches[2]];
+            if (temp_semester === 1) {
+                temp_year += 1;
+            }
+
+            if (current_year !== temp_year || current_semester !== temp_semester) {
+                need_update = true;
+                current_year = temp_year;
+                current_semester = temp_semester;
+            }
+
+            return false;
+        }
+    });
+
+    if (need_update) {
+        fetchPointFromAPI();
+        return;
+    }
+
+    // 检查是否需要更新已用分数和剩余分数
+    const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
+    if (tab.text().includes("已选")) { // 已选课程页面
+        const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input");
+        let temp_used_point = 0;
+        inputs.each(function () {
+            temp_used_point += parseInt(this.value);
+        });
+
+        if (temp_used_point !== used_point) {
+            need_update = true;
+        }
+    } else { // 选课页面
+        const remainingPointsElement = $(".ivu-layout .ivu-layout-header .ivu-alert-message").find("span:contains('剩余积分')").text();
+        const remainingPointsMatch = remainingPointsElement.match(/剩余积分:(\d+(\.\d+)?)/);
+        if (remainingPointsMatch) {
+            const temp_remaining_point = parseFloat(remainingPointsMatch[1]);
+            if (temp_remaining_point !== remaining_point) {
+                need_update = true;
+            }
+        }
+    }
+
+    if (need_update) {
+        fetchPointFromAPI();
+    }
 }
 
 function startReferesh() {
-    setInterval(fetchPointFromAPI, 1000)
+    setInterval(checkPointUpdate, 1000)
     setInterval(addBtn, 1000)
     setInterval(hightlightRiskyCourses, 1000)
     setInterval(addSearchLinks, 1000)
