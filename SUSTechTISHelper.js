@@ -386,14 +386,14 @@ let current_year;
 let current_semester;
 let remaining_point;
 let used_point;
-let need_update = false;
+let isFetching = false;
 
 async function fetchPointFromAPI() {
 
-    if (!need_update) {
+    if (isFetching) {
         return;
     }
-    need_update = false;
+    isFetching = true;
 
     const last_year = current_year - 1;
 
@@ -441,14 +441,15 @@ async function fetchPointFromAPI() {
     } else {
         marker.html(`总积分：${used_point + remaining_point}，已用分数：${used_point}，剩余分数：${remaining_point}`)
     }
+
+    isFetching = false;
 }
 
 function checkPointUpdate() {
 
-    if (need_update) {
-        return;
-    }
+    let need_update = false;
 
+    // 检查是否需要更新年份和学期
     const regex = /^(\d{4})(春|夏|秋)季$/;
     const seasonMapping = {
         春: 2,
@@ -456,7 +457,6 @@ function checkPointUpdate() {
         秋: 1
     };
     const selectedElements = $(".ivu-layout .ivu-select-selection .ivu-select-selected-value");
-
     let temp_year, temp_semester;
 
     selectedElements.each(function () {
@@ -479,11 +479,13 @@ function checkPointUpdate() {
     });
 
     if (need_update) {
+        fetchPointFromAPI();
         return;
     }
 
+    // 检查是否需要更新已用分数和剩余分数
     const tab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
-    if (tab.text().includes("已选")) {
+    if (tab.text().includes("已选")) { // 已选课程页面
         const inputs = $(".ivu-table-fixed-right .ivu-table-row td:not(.ivu-table-hidden) input");
         let temp_used_point = 0;
         inputs.each(function () {
@@ -493,7 +495,7 @@ function checkPointUpdate() {
         if (temp_used_point !== used_point) {
             need_update = true;
         }
-    } else {
+    } else { // 选课页面
         const remainingPointsElement = $(".ivu-layout .ivu-layout-header .ivu-alert-message").find("span:contains('剩余积分')").text();
         const remainingPointsMatch = remainingPointsElement.match(/剩余积分:(\d+(\.\d+)?)/);
         if (remainingPointsMatch) {
@@ -503,10 +505,13 @@ function checkPointUpdate() {
             }
         }
     }
+
+    if (need_update) {
+        fetchPointFromAPI();
+    }
 }
 
 function startReferesh() {
-    setInterval(fetchPointFromAPI, 1000)
     setInterval(checkPointUpdate, 1000)
     setInterval(addBtn, 1000)
     setInterval(hightlightRiskyCourses, 1000)
