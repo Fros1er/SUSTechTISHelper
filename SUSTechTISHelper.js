@@ -305,7 +305,7 @@ function addBtn() {
 // 自动高亮已选超出容量的课程
 function hightlightRiskyCourses() {
     $('span').each(function () {
-        var matches = $(this).text().match(/容量：(\d+).*已选人数：(\d+)/);
+        var matches = $(this).text().replaceAll('\n', '').replaceAll('\t', '').match(/对内容量：(\d+).*已选人数：(\d+).*/);
         if (matches) {
             if (parseInt(matches[2]) > parseInt(matches[1])) {
                 $(this).css('color', 'red');
@@ -375,11 +375,13 @@ function getCookie(name) {
 
 function handleSearchInput() {
     // 搜索框按下回车键时触发搜索
-    $("input[placeholder=课程]")[0].addEventListener('keydown', function (e) {
-        if (e.keyCode === 13) $('button:contains("查询")')[0].click();
-    });
-    $("input[placeholder=课程]")[0].setAttribute("placeholder", "课程(按Enter搜索)");
-    loadedCustomCourseTable = true
+    if ($("input[placeholder=课程]").length) {
+        $("input[placeholder=课程]")[0].addEventListener('keydown', function (e) {
+            if (e.keyCode === 13) $('button:contains("查询")')[0].click();
+        });
+        $("input[placeholder=课程]")[0].setAttribute("placeholder", "课程(按Enter搜索)");
+        loadedCustomCourseTable = true
+    }
 }
 
 let current_year;
