@@ -259,16 +259,18 @@ function addBtn() {
             modal.hide();
             unsafeWindow.addToStashTable = function (btn) {
                 const row = $('td', btn.parentNode.parentNode)
-                let clsName = $('span', row[0]).html()
-                let teacher = $('a', row[9]).html()
+                let teacher, clsName
                 const timeStrs = []
-                if (clsName == "待生效") {
+                const selectedTab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
+                if (selectedTab.text().includes("已选")) {
                     clsName = $('span', row[3]).html()
-                    teacher = $('a', row[11]).html()
-                    $('.ivu-tag-cyan p', row[11]).each(function () {
+                    teacher = $('a', row[12]).html()
+                    $('.ivu-tag-cyan p', row[12]).each(function () {
                         timeStrs.push(this.innerHTML)
                     })
                 } else {
+                    clsName = $('span', row[0]).html()
+                    teacher = $('a', row[9]).html()
                     $('.ivu-tag-cyan p', row[9]).each(function () {
                         timeStrs.push(this.innerHTML)
                     })
@@ -312,6 +314,7 @@ function hightlightRiskyCourses() {
             }
         }
     });
+
 }
 // 链接教师到评教平台
 function addSearchLinks() {
@@ -323,6 +326,7 @@ function addSearchLinks() {
         $(this).attr('target', '_blank');
     });
 }
+
 // 隐藏及显示课程信息
 function showInfo() {
     $('.ivu-tag-text').show();
@@ -337,6 +341,7 @@ function hideInfo() {
     $('button:contains("课程时间表")').text('展开课程时间表');
     $('b:contains("上课信息")').text('上课信息(已折叠)');
 }
+
 function initInfoVisibility() {
     if ($('b:contains("上课信息:")').length == 0) return;
     if (!getCookie("hideTimeTable") || getCookie("hideTimeTable") == '0') {
