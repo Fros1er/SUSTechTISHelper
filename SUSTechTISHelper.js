@@ -379,7 +379,7 @@ function handleSearchInput() {
         $(searchInput[0]).on('keydown', function (e) {
             if (e.keyCode === 13) $('button:contains("查询")')[0].click();
         });
-        searchInput[0].setAttribute("placeholder", "课程(按Enter搜索)");
+        $(searchInput[0]).attr("placeholder", "课程(按Enter搜索)");
         loadedCustomCourseTable = true
     }
 }
