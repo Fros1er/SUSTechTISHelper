@@ -309,8 +309,8 @@ function hightlightRiskyCourses() {
     $('.ivu-table-cell-slot').each(function () {
         var matches = $(this).text().replaceAll('\n', '').replaceAll('\t', '').match(/对内容量：(\d+).*已选人数：(\d+).*/);
         if (matches) {
-            if (matches[2] > matches[1]) $(this).css('color', 'red');
-            if (matches[2] == matches[1]) $(this).css('color', 'orange');
+            if (parseInt(matches[2]) > parseInt(matches[1])) $(this).css('color', 'red');
+            if (parseInt(matches[2]) == parseInt(matches[1])) $(this).css('color', 'orange');
         }
     });
 
