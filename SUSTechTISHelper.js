@@ -321,7 +321,7 @@ function addSearchLinks() {
         return $(this).text().trim() !== '';
     });
     links.each(function () {
-        $(this).attr('href', 'https://nces.cra.moe/search/?q=' + $(this).text());
+        $(this).attr('href', 'https://ncesnext.com/search/?q=' + $(this).text());
         $(this).attr('target', '_blank');
     });
 }
