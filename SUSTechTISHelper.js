@@ -307,7 +307,7 @@ function addBtn() {
 // 自动高亮已选超出容量的课程
 function hightlightRiskyCourses() {
     $('.ivu-table-cell-slot').each(function () {
-        var matches = $(this).text().replaceAll('\n', '').replaceAll('\t', '').match(/对内容量：(\d+).*已选人数：(\d+).*/);
+        var matches = $(this).text().replaceAll('\n', '').replaceAll('\t', '').match(/本科生容量：(\d+).*已选人数：(\d+).*/);
         if (matches) {
             if (parseInt(matches[2]) > parseInt(matches[1])) $(this).css('color', 'red');
             if (parseInt(matches[2]) == parseInt(matches[1])) $(this).css('color', 'orange');
