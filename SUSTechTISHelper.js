@@ -210,11 +210,30 @@ function addBtn() {
     }
     if (!loadedCustomCourseTable) {
         if ($('.ivu-layout-header button').eq(6).length != 0) {
+            // 【新增】创建“导出为PNG”按钮
+            let exportBtn = $('<button class="ivu-btn ivu-btn-info"> \
+                <span>导出PNG</span></button>');
+            exportBtn.on('click', function (e) {
+                e.stopPropagation(); // 防止点击后 modal 关闭
+                unsafeWindow.showToast('正在生成图片，请稍候...');
+                html2canvas(document.querySelector('#courseTable'), {
+                    backgroundColor: '#fefefe', // 设置背景色以防透明
+                    useCORS: true // 允许跨域图片（如有）
+                }).then(canvas => {
+                    // 创建一个临时的 a 标签用于下载
+                    let link = document.createElement('a');
+                    link.download = 'sustech-timetable.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
             let modal = $('<div class="modal"><div class="modal-content"> \
                 <div class="modal-header"><span class="close">&times;</span> \
                 <span class="modal-title">双击删除某门课</span></div>\
                 <div class="modal-body" id="courseTable"></div></div></div>'
             )
+            // 将按钮插入到标题后面
+            $('.modal-title', modal).after(exportBtn);
             $('.close', modal).on('click', function () {
                 modal.hide()
             })
