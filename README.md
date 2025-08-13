@@ -8,7 +8,7 @@
 
 脚本还提供计算已使用积分的功能。点击“已选”一栏在按钮后面可以看到统计。（已适配赠送积分的情况）
 
-感谢[@xCipHanD](https://github.com/xCipHanD)提供自动高亮超出容量课程、链接教授名到[牛娃课程评价社区](https://ncesnext.com/)、按回车键搜索课程（而不是只能点按钮）的功能。[@Cypher-Bruce](https://github.com/Cypher-Bruce)优化了积分计算的功能。
+感谢[@xCipHanD](https://github.com/xCipHanD)提供自动高亮超出容量课程、链接教授名到[牛娃课程评价社区](https://ncesnext.com/)、按回车键搜索课程（而不是只能点按钮）的功能。[@Cypher-Bruce](https://github.com/Cypher-Bruce)优化了积分计算的功能。[@KevinHuge](https://github.com/KevinHuge)提供自动暂存已选课程，当用户成功暂存、删除课程时，可以获得即时反馈，导出暂存课表图片的功能。
 
 ## 使用说明
 
