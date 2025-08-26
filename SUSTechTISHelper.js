@@ -185,6 +185,18 @@ function genTimetableOption(isInit) {
     return res
 }
 
+function getColumnIndexByHeaderText(headerText) {
+    let index = -1;
+    // 遍历所有表头单元格
+    $('.ivu-table-header th').each(function (i) {
+        if ($(this).text().trim() === headerText) {
+            index = i;
+            return false; // 找到后即退出循环
+        }
+    });
+    return index;
+}
+
 function addBtn() {
     const rows = $('.ivu-table-body .ivu-table-row')
     if ($('td:first button', rows).length != 0) {
@@ -298,14 +310,23 @@ function addBtn() {
                 let teacher, clsName;
                 const timeStrs = [];
                 const selectedTab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active");
+
+                const colIdxClass = getColumnIndexByHeaderText('教学班');
+                if (colIdxClass !== -1) {
+                    clsName = $('span', row.find('td').eq(colIdxClass)).html();
+                } else {
+                    if (selectedTab.text().includes("已选")) {
+                        clsName = $('span', row.find('td').eq(3)).html();
+                    } else {
+                        clsName = $('span', row.find('td').eq(0)).html();
+                    }
+                }
                 if (selectedTab.text().includes("已选")) {
-                    clsName = $('span', row.find('td').eq(3)).html();
                     teacher = $('a', row.find('td').eq(12)).html();
                     $('.ivu-tag-cyan p', row.find('td').eq(12)).each(function () {
                         timeStrs.push(this.innerHTML);
                     });
                 } else {
-                    clsName = $('span', row.find('td').eq(0)).html();
                     teacher = $('a', row.find('td').eq(9)).html();
                     $('.ivu-tag-cyan p', row.find('td').eq(9)).each(function () {
                         timeStrs.push(this.innerHTML);
@@ -332,8 +353,13 @@ function addBtn() {
 
             unsafeWindow.addToStashTable = function (btn) {
                 const row = $(btn).closest('.ivu-table-row');
-                // 提前获取课程名称，避免代码重复
-                const courseName = $('span', row.find('td').eq(0)).html() || $('span', row.find('td').eq(3)).html();
+                const colIdxClass = getColumnIndexByHeaderText('教学班');
+                let courseName;
+                if (colIdxClass !== -1) {
+                    courseName = $('span', row.find('td').eq(colIdxClass)).html();
+                } else {
+                    courseName = $('span', row.find('td').eq(0)).html() || $('span', row.find('td').eq(3)).html();
+                }
                 if (unsafeWindow.stashCourseFromRow(row)) {
                     localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray));
                     unsafeWindow.showToast(`课程 "${courseName}" 已成功暂存！`);
