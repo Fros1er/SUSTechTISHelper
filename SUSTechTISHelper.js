@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SUSTech TIS Helper
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  一个让妮可选课系统方便点的脚本
 // @author       Froster
 // @match        https://tis.sustech.edu.cn/Xsxk*
