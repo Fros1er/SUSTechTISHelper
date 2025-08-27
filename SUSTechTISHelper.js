@@ -8,6 +8,7 @@
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @require      https://cdn.jsdelivr.net/gh/Fros1er/Timetable/Timetables.min.js
+// @require      https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 // ==/UserScript==
 
 if (typeof unsafeWindow == 'undefined') {
@@ -98,43 +99,22 @@ if (typeof GM_addStyle != 'undefined') {
   font-weight: bold;
 }
 
-.modal-body {padding: 2px 16px;}
-
-.us-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  background: #FFF;
-  padding: 22px;
-  width: auto;
-  max-width: 500px;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateY(20px);
 }
-
-.us-popup-inner {
-    margin: 0 22px;
-}
-
-.us-popup-close {
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  z-index: 10000;
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
-  position: absolute;
-  right: 0;
-  top: 0;
-  opacity: 0.65;
-  font-size: 28px;
-}
-
-.us-popup-reader {
-    overflow-y: scroll;
-    max-height: 500px;
+.toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 `);
 }
@@ -184,6 +164,7 @@ function genTimetableOption(isInit) {
         },
         gridOnClick: function (e) {
             if (unsafeWindow.lastClicked == e && e != '') {
+                let courseName = e;
                 for (let i = 0; i < unsafeWindow.timetableArray.length; i++) {
                     for (let j = 0; j < unsafeWindow.timetableArray[i].length; j++) {
                         unsafeWindow.timetableArray[i][j] = unsafeWindow.timetableArray[i][j].filter(function (v) {
@@ -192,7 +173,8 @@ function genTimetableOption(isInit) {
                     }
                 }
                 localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
-                unsafeWindow.timetable.setOption(genTimetableOption(false))
+                unsafeWindow.timetable.setOption(genTimetableOption(false));
+                unsafeWindow.showToast(`课程 "${courseName}" 已从暂存课表移除`);
             }
             unsafeWindow.lastClicked = e
         }
@@ -203,6 +185,18 @@ function genTimetableOption(isInit) {
     return res
 }
 
+function getColumnIndexByHeaderText(headerText) {
+    let index = -1;
+    // 遍历所有表头单元格
+    $('.ivu-table-header th').each(function (i) {
+        if ($(this).text().trim() === headerText) {
+            index = i;
+            return false; // 找到后即退出循环
+        }
+    });
+    return index;
+}
+
 function addBtn() {
     const rows = $('.ivu-table-body .ivu-table-row')
     if ($('td:first button', rows).length != 0) {
@@ -210,11 +204,28 @@ function addBtn() {
     }
     if (!loadedCustomCourseTable) {
         if ($('.ivu-layout-header button').eq(6).length != 0) {
+            let exportBtn = $('<button class="ivu-btn ivu-btn-info"> \
+                <span>导出PNG</span></button>');
+            exportBtn.on('click', function (e) {
+                e.stopPropagation(); // 防止点击后 modal 关闭
+                unsafeWindow.showToast('正在生成图片，请稍候...');
+                html2canvas(document.querySelector('#courseTable'), {
+                    backgroundColor: '#fefefe',
+                    useCORS: true
+                }).then(canvas => {
+                    let link = document.createElement('a');
+                    link.download = 'sustech-timetable.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+
             let modal = $('<div class="modal"><div class="modal-content"> \
                 <div class="modal-header"><span class="close">&times;</span> \
                 <span class="modal-title">双击删除某门课</span></div>\
                 <div class="modal-body" id="courseTable"></div></div></div>'
-            )
+            );
+            $('.modal-title', modal).after(exportBtn);
             $('.close', modal).on('click', function () {
                 modal.hide()
             })
@@ -227,6 +238,22 @@ function addBtn() {
                 <span>暂存课表查看</span></button>'
             )
             btn.on('click', function () {
+                // 自动暂存所有“已选课程”
+                let stashedNew = false;
+                // 确认当前在“已选课程”标签页
+                if ($(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active").text().includes("已选")) {
+                    console.log("正在从'已选课程'自动暂存...");
+                    // 遍历所有课程行
+                    $('.ivu-table-body .ivu-table-row').each(function () {
+                        if (unsafeWindow.stashCourseFromRow($(this))) {
+                            stashedNew = true;
+                        }
+                    });
+                    if (stashedNew) {
+                        localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray));
+                        console.log("自动暂存完成");
+                    }
+                }
                 modal.show()
                 unsafeWindow.timetable.setOption(genTimetableOption(false))
             })
@@ -257,42 +284,92 @@ function addBtn() {
             ];
             unsafeWindow.timetable = new Timetables(genTimetableOption(true))
             modal.hide();
-            unsafeWindow.addToStashTable = function (btn) {
-                const row = $('td', btn.parentNode.parentNode)
-                let teacher, clsName
-                const timeStrs = []
-                const selectedTab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active")
-                if (selectedTab.text().includes("已选")) {
-                    clsName = $('span', row[3]).html()
-                    teacher = $('a', row[12]).html()
-                    $('.ivu-tag-cyan p', row[12]).each(function () {
-                        timeStrs.push(this.innerHTML)
-                    })
+            // Toast 提示函数
+            unsafeWindow.showToast = function (message) {
+                let toast = $('<div class="toast-notification"></div>');
+                toast.text(message);
+                $('body').append(toast);
+
+                // 使用 setTimeout 确保浏览器有时间渲染元素，再添加 show class 触发动画
+                setTimeout(() => {
+                    toast.addClass('show');
+                }, 10);
+
+                // 1秒后自动开始消失动画
+                setTimeout(() => {
+                    toast.removeClass('show');
+                    // 在动画结束后从 DOM 中移除元素，防止页面上残留不可见的元素
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 500);
+                }, 1000);
+            }
+
+            // 将暂存逻辑封装为单独函数
+            unsafeWindow.stashCourseFromRow = function (row) {
+                let teacher, clsName;
+                const timeStrs = [];
+                const selectedTab = $(".ivu-layout .ivu-tabs-nav .ivu-tabs-tab-active");
+
+                const colIdxClass = getColumnIndexByHeaderText('教学班');
+                if (colIdxClass !== -1) {
+                    clsName = $('span', row.find('td').eq(colIdxClass)).html();
                 } else {
-                    clsName = $('span', row[0]).html()
-                    teacher = $('a', row[9]).html()
-                    $('.ivu-tag-cyan p', row[9]).each(function () {
-                        timeStrs.push(this.innerHTML)
-                    })
+                    if (selectedTab.text().includes("已选")) {
+                        clsName = $('span', row.find('td').eq(3)).html();
+                    } else {
+                        clsName = $('span', row.find('td').eq(0)).html();
+                    }
+                }
+                if (selectedTab.text().includes("已选")) {
+                    teacher = $('a', row.find('td').eq(12)).html();
+                    $('.ivu-tag-cyan p', row.find('td').eq(12)).each(function () {
+                        timeStrs.push(this.innerHTML);
+                    });
+                } else {
+                    teacher = $('a', row.find('td').eq(9)).html();
+                    $('.ivu-tag-cyan p', row.find('td').eq(9)).each(function () {
+                        timeStrs.push(this.innerHTML);
+                    });
                 }
 
-                let changed = false
+                if (!clsName) return false; // 如果没有课程名称，直接返回 false
+
+                let changed = false;
                 for (let s of timeStrs) {
-                    let res = s.match("星期(.)第(\\d+\)-(\\d+)节")
-                    for (let i = res[2] - 1; i < res[3]; i++) {
-                        let name = clsName + ' ' + teacher
-                        if (!unsafeWindow.timetableArray[weekday[res[1]]][i].includes(name)) {
-                            unsafeWindow.timetableArray[weekday[res[1]]][i].push(name)
-                            changed = true
+                    let res = s.match("星期(.)第(\\d+)-(\\d+)节");
+                    if (res) {
+                        for (let i = res[2] - 1; i < res[3]; i++) {
+                            let name = clsName + ' ' + teacher;
+                            if (!unsafeWindow.timetableArray[weekday[res[1]]][i].includes(name)) {
+                                unsafeWindow.timetableArray[weekday[res[1]]][i].push(name);
+                                changed = true;
+                            }
                         }
                     }
                 }
-                if (changed) {
-                    localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
+                return changed;
+            }
+
+            unsafeWindow.addToStashTable = function (btn) {
+                const row = $(btn).closest('.ivu-table-row');
+                const colIdxClass = getColumnIndexByHeaderText('教学班');
+                let courseName;
+                if (colIdxClass !== -1) {
+                    courseName = $('span', row.find('td').eq(colIdxClass)).html();
+                } else {
+                    courseName = $('span', row.find('td').eq(0)).html() || $('span', row.find('td').eq(3)).html();
+                }
+                if (unsafeWindow.stashCourseFromRow(row)) {
+                    localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray));
+                    unsafeWindow.showToast(`课程 "${courseName}" 已成功暂存！`);
+                } else {
+                    unsafeWindow.showToast(`课程 "${courseName}" 已存在。`);
                 }
             }
         }
     }
+
     rows.each(function () {
         let btn = $('<button type="button" \
             class="ivu-btn ivu-btn-success ivu-btn-small"><span>暂存</span></button>')
@@ -307,7 +384,7 @@ function addBtn() {
 // 自动高亮已选超出容量的课程
 function hightlightRiskyCourses() {
     $('.ivu-table-cell-slot').each(function () {
-        var matches = $(this).text().replaceAll('\n', '').replaceAll('\t', '').match(/对内容量：(\d+).*已选人数：(\d+).*/);
+        var matches = $(this).text().replaceAll('\n', '').replaceAll('\t', '').match(/本科生容量：(\d+).*已选人数：(\d+).*/);
         if (matches) {
             if (parseInt(matches[2]) > parseInt(matches[1])) $(this).css('color', 'red');
             if (parseInt(matches[2]) == parseInt(matches[1])) $(this).css('color', 'orange');
@@ -315,6 +392,7 @@ function hightlightRiskyCourses() {
     });
 
 }
+
 // 链接教师到评教平台
 function addSearchLinks() {
     var links = $('a[href="javascript:void(0);"]').filter(function () {
