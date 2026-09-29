@@ -6,6 +6,8 @@
 // @author       Froster
 // @match        https://tis.sustech.edu.cn/Xsxk*
 // @grant        unsafeWindow
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @require      https://cdn.jsdelivr.net/gh/Fros1er/Timetable/Timetables.min.js
 // @require      https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 // ==/UserScript==
@@ -183,7 +185,7 @@ function genTimetableOption(isInit) {
                         })
                     }
                 }
-                localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
+                GM_setValue("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
                 unsafeWindow.timetable.setOption(genTimetableOption(false));
                 unsafeWindow.showToast(`课程 "${courseName}" 已从暂存课表移除`);
             }
@@ -261,7 +263,7 @@ function addBtn() {
                         }
                     });
                     if (stashedNew) {
-                        localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray));
+                        GM_setValue("timetableArray", JSON.stringify(unsafeWindow.timetableArray));
                         console.log("自动暂存完成");
                     }
                 }
@@ -280,13 +282,13 @@ function addBtn() {
                         [[], [], [], [], [], [], [], [], [], [], []],
                         [[], [], [], [], [], [], [], [], [], [], []]
                     ];
-                    localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
+                    GM_setValue("timetableArray", JSON.stringify(unsafeWindow.timetableArray))
                 }
             })
             let foldbtn = $('<button class="ivu-btn ivu-btn-info"><span>课程时间表</span></button>')
             $('.ivu-layout-header button').eq(6).after(removeAllBtn).after(btn).after(foldbtn)
             $('#app').append(modal)
-            unsafeWindow.timetableArray = JSON.parse(localStorage.getItem("timetableArray")) || [
+            unsafeWindow.timetableArray = JSON.parse(GM_getValue("timetableArray")) || [
                 [[], [], [], [], [], [], [], [], [], [], []],
                 [[], [], [], [], [], [], [], [], [], [], []],
                 [[], [], [], [], [], [], [], [], [], [], []],
@@ -372,7 +374,7 @@ function addBtn() {
                     courseName = $('span', row.find('td').eq(0)).html() || $('span', row.find('td').eq(3)).html();
                 }
                 if (unsafeWindow.stashCourseFromRow(row)) {
-                    localStorage.setItem("timetableArray", JSON.stringify(unsafeWindow.timetableArray));
+                    GM_setValue("timetableArray", JSON.stringify(unsafeWindow.timetableArray));
                     unsafeWindow.showToast(`课程 "${courseName}" 已成功暂存！`);
                 } else {
                     unsafeWindow.showToast(`课程 "${courseName}" 已存在。`);
