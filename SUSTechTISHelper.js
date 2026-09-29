@@ -5,7 +5,6 @@
 // @description  一个让妮可选课系统方便点的脚本
 // @author       Froster
 // @match        https://tis.sustech.edu.cn/Xsxk*
-// @grant        GM_addStyle
 // @grant        unsafeWindow
 // @require      https://cdn.jsdelivr.net/gh/Fros1er/Timetable/Timetables.min.js
 // @require      https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
@@ -28,8 +27,7 @@ if (typeof unsafeWindow == 'undefined') {
         unsafeWindow = window
     }
 }
-if (typeof GM_addStyle != 'undefined') {
-    GM_addStyle(`
+const helperStyles = `
 /* The Modal (background) */
 .modal {
   position: fixed; /* Stay in place */
@@ -116,8 +114,21 @@ if (typeof GM_addStyle != 'undefined') {
     opacity: 1;
     transform: translateY(0);
 }
-`);
+`;
+
+function injectHelperStyles(cssText) {
+    const styleId = 'sustech-tis-helper-styles';
+    if (document.getElementById(styleId)) {
+        return;
+    }
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = cssText;
+    (document.head || document.documentElement).appendChild(style);
 }
+
+injectHelperStyles(helperStyles);
 
 function generatePopupDiv() {
     let popup = $("<div class='us-popup'></div>");
